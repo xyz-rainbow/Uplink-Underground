@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import { fetchCyberpunkNews, generateNarration, decodeAudio, generateStoryImage } from './services/geminiService';
-import { NewsItem, BroadcastState, SPEAKER_PROFILES, SpeakerProfile, Sentiment } from './types';
+import { NewsItem, BroadcastState, SPEAKER_PROFILES, Sentiment } from './types';
 import MusicVisualizer from './components/MusicVisualizer';
 import ProceduralAudio from './components/ProceduralAudio';
-import { MapPin, Radio, Zap, AlertTriangle, RefreshCw, ChevronRight, ExternalLink, Cpu, UserCheck, Bookmark, Trash2, Archive, X, Navigation, Infinity, Share2, Download, StopCircle, Volume2, VolumeX, Terminal, Image as ImageIcon, Activity, Play, Music, Mic, ScrollText, Loader2 } from 'lucide-react';
+import { MapPin, Radio, Zap, AlertTriangle, RefreshCw, ChevronRight, ExternalLink, Cpu, UserCheck, Bookmark, Trash2, Archive, X, Navigation, Infinity, Share2, Volume2, VolumeX, Terminal, Activity, Music, Mic, Loader2 } from 'lucide-react';
 import L from 'leaflet';
 
 const TOPICS = ['Technology', 'Crime', 'Politics', 'Economy', 'Corporate', 'General'];
