@@ -18,6 +18,9 @@ const MusicVisualizer: React.FC<VisualizerProps> = ({ isPlaying, color = '#00ffc
   const barWidth = width / numBars;
   const barPadding = 2;
 
+  // Pre-allocate data array to avoid garbage collection in animation loop
+  const dataRef = useRef(new Float32Array(numBars).fill(2));
+
   // Initialize SVG and bars (runs only once)
   useEffect(() => {
     if (!svgRef.current) return;
@@ -27,11 +30,10 @@ const MusicVisualizer: React.FC<VisualizerProps> = ({ isPlaying, color = '#00ffc
     // Clear existing content to prevent duplicates in dev/hot-reload
     svg.selectAll('*').remove();
 
-    const data = Array.from({ length: numBars }, () => 2);
-
     // Create bars and store the selection in a ref
+    // Use the pre-allocated array for initial data
     barsRef.current = svg.selectAll('rect')
-      .data(data)
+      .data(dataRef.current)
       .enter()
       .append('rect')
       .attr('x', (d, i) => i * barWidth)
@@ -62,16 +64,17 @@ const MusicVisualizer: React.FC<VisualizerProps> = ({ isPlaying, color = '#00ffc
 
     const animate = () => {
       if (isPlaying) {
-        // Generate random data for visualization
-        const newData = Array.from({ length: numBars }, (_, i) => {
+        // Update the pre-allocated array in place
+        const data = dataRef.current;
+        for (let i = 0; i < numBars; i++) {
           const base = Math.random() * height * 0.4;
           const peak = (i % 8 === 0) ? Math.random() * height * 0.6 : 0;
-          return Math.max(2, base + peak); // Ensure minimum height of 2
-        });
+          data[i] = Math.max(2, base + peak); // Ensure minimum height of 2
+        }
 
         // Update bars directly without D3 transitions for performance
         barsRef.current!
-          .data(newData)
+          .data(data)
           .attr('y', d => height - d)
           .attr('height', d => d)
           .attr('fill', (d) => d > height * 0.85 ? '#ffffff' : color);
@@ -79,8 +82,12 @@ const MusicVisualizer: React.FC<VisualizerProps> = ({ isPlaying, color = '#00ffc
         requestRef.current = requestAnimationFrame(animate);
       } else {
         // Reset to resting state efficiently
+        // We can reuse the same array for reset too
+        const data = dataRef.current;
+        data.fill(2);
+
         barsRef.current!
-          .data(Array.from({ length: numBars }, () => 2))
+          .data(data)
           .transition() // Use a single transition to smooth out the stop
           .duration(300)
           .ease(d3.easeQuadOut)
