@@ -1,7 +1,10 @@
+
 # 📡 Uplink Underground: Speculative Mirror
 > "Turning the world's noise into the city's propaganda."
 
 Speculative Mirror is a "Dystopian Translation" engine that ingests real-world OSINT data and transmutes it into immersive chronicles of a cyberpunk future. It is not just a news aggregator; it is a lens that refracts reality through neon, crisis, and chrome.
+
+![Uplink Underground Banner](./components/banner-uplink.svg)
 
 ---
 
