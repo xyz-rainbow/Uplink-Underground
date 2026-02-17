@@ -33,7 +33,7 @@ export const fetchCyberpunkNews = async (
     - originalHeadline: Real original headline.
     - cyberHeadline: Stylized, brief, and powerful headline.
     - cyberStory: Report (3 paragraphs with \\n\\n).
-    - imagePrompts: ARRAY of exactly 3 detailed visual descriptions (cyberpunk digital art style, high contrast, neon).
+    - imagePrompts: ARRAY of exactly 1 detailed visual description (cyberpunk digital art style, high contrast, neon).
     - sentiment: [AGGRESSIVE, NEUTRAL, MELANCHOLY, CORPORATE, CHAOTIC]. Choose the one that best fits the real news.
     - source: Name of the real source.
     - timestamp: Time stamp like "CY-2077.MM.DD".`;
