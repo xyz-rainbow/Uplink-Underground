@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import './App.css';
 import { fetchCyberpunkNews, generateNarration, decodeAudio, generateStoryImage } from './services/geminiService';
 import { NewsItem, BroadcastState, SPEAKER_PROFILES, SpeakerProfile, Sentiment } from './types';
 import MusicVisualizer from './components/MusicVisualizer';
@@ -606,14 +607,6 @@ const App: React.FC = () => {
       <footer className="mt-16 opacity-20 font-black tracking-[1.5em] text-[10px] uppercase text-center w-full hover:opacity-100 transition-all duration-700 cursor-default">
         UPLINK UNDERGROUND v2.6.2 • KNOWLEDGE IS THE ONLY HACK • CY-2077
       </footer>
-
-      <style>{`
-        .paragraph-entry.paragraph-visible {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-            filter: blur(0) !important;
-        }
-      `}</style>
     </div>
   );
 };
