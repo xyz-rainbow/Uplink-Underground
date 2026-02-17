@@ -1,12 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1g9xliU4AbzQy8MOZI2lmHGzsb2VjIjRs
+# Run Uplink-Underground
+![Uploadi<svg width="800" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo con Grid Cyberpunk -->
+  <rect width="800" height="300" fill="#0a0a0f" />
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1f1f2e" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff0055;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="300" fill="url(#grid)" />
+  
+  <!-- Círculo Central (Mirror) -->
+  <circle cx="400" cy="150" r="80" fill="none" stroke="url(#neonGrad)" stroke-width="2" filter="url(#glow)" />
+  <circle cx="400" cy="150" r="60" fill="none" stroke="#00f2ff" stroke-width="1" stroke-dasharray="10,5" />
+  
+  <!-- Líneas de Señal (Uplink) -->
+  <path d="M 100 150 L 320 150 M 480 150 L 700 150" stroke="url(#neonGrad)" stroke-width="2" stroke-dasharray="5,5" />
+  
+  <!-- Texto -->
+  <text x="400" y="260" font-family="monospace" font-size="24" fill="#00f2ff" text-anchor="middle" filter="url(#glow)" style="letter-spacing: 5px;">SPECULATIVE MIRROR</text>
+  <text x="400" y="280" font-family="monospace" font-size="10" fill="#ff0055" text-anchor="middle" style="letter-spacing: 2px;">UPLINK UNDERGROUND NEWS ENGINE</text>
+</svg>ng banner-uplink.svg…]()
 
 ## Run Locally
 
