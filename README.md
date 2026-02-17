@@ -52,7 +52,9 @@ The experience is sensory. The system features a dynamic audio engine that react
    ```
 
 2. **Configure Environment:**
-   Set the `GEMINI_API_KEY` in `.env` (or `.env.local`) to your Gemini API key.
+   You can provide your Gemini API key in two ways:
+   - **Runtime (Recommended):** Just run the app, and you will be prompted to enter your key securely. It is stored in your local browser storage.
+   - **Dev Mode:** Set `VITE_GEMINI_API_KEY` in `.env` (or `.env.local`) to your key. This will auto-fill the key for local development.
 
 3. **Start the transmission:**
    ```bash

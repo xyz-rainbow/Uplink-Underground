@@ -5,7 +5,8 @@ import { fetchCyberpunkNews, generateNarration, decodeAudio, generateStoryImage 
 import { NewsItem, BroadcastState, SPEAKER_PROFILES, SpeakerProfile, Sentiment } from './types';
 import MusicVisualizer from './components/MusicVisualizer';
 import ProceduralAudio from './components/ProceduralAudio';
-import { MapPin, Radio, Zap, AlertTriangle, RefreshCw, ChevronRight, ExternalLink, Cpu, UserCheck, Bookmark, Trash2, Archive, X, Navigation, Infinity, Share2, Download, StopCircle, Volume2, VolumeX, Terminal, Image as ImageIcon, Activity, Play, Music, Mic, ScrollText, Loader2 } from 'lucide-react';
+import ApiKeyModal from './components/ApiKeyModal';
+import { MapPin, Radio, Zap, AlertTriangle, RefreshCw, ChevronRight, ExternalLink, Cpu, UserCheck, Bookmark, Trash2, Archive, X, Navigation, Infinity, Share2, Download, StopCircle, Volume2, VolumeX, Terminal, Image as ImageIcon, Activity, Play, Music, Mic, ScrollText, Loader2, Key } from 'lucide-react';
 import L from 'leaflet';
 
 const TOPICS = ['Technology', 'Crime', 'Politics', 'Economy', 'Corporate', 'General'];
@@ -38,6 +39,8 @@ const App: React.FC = () => {
   const [isMusicActive, setIsMusicActive] = useState(false);
   const [isNarrationActive, setIsNarrationActive] = useState(false);
   const [isVoiceLoading, setIsVoiceLoading] = useState(false);
+
+  const [apiKey, setApiKey] = useState<string | null>(null);
 
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const effectsGainRef = useRef<GainNode | null>(null);
@@ -73,6 +76,13 @@ const App: React.FC = () => {
   useEffect(() => {
     const stored = localStorage.getItem('uplink_underground_archives');
     if (stored) setSavedStories(JSON.parse(stored));
+
+    const storedKey = localStorage.getItem('uplink_gemini_api_key');
+    if (storedKey) {
+      setApiKey(storedKey);
+    } else if (import.meta.env.VITE_GEMINI_API_KEY) {
+      setApiKey(import.meta.env.VITE_GEMINI_API_KEY);
+    }
   }, []);
 
   useEffect(() => {
@@ -140,6 +150,17 @@ const App: React.FC = () => {
     }
   }, [state.isBroadcasting, showArchives]);
 
+  const handleSaveApiKey = (key: string) => {
+    localStorage.setItem('uplink_gemini_api_key', key);
+    setApiKey(key);
+  };
+
+  const handleClearApiKey = () => {
+    localStorage.removeItem('uplink_gemini_api_key');
+    setApiKey(null);
+    window.location.reload();
+  };
+
   const initAudio = async () => {
     let currentCtx = audioCtx;
     if (!currentCtx) {
@@ -171,11 +192,16 @@ const App: React.FC = () => {
       return;
     }
 
+    if (!apiKey) {
+      setIsVoiceLoading(false);
+      return;
+    }
+
     setCurrentChunkIndex(chunkIdx);
     setIsVoiceLoading(true);
     
     try {
-      const base64 = await generateNarration(chunks[chunkIdx], state.language, state.speaker, sentiment);
+      const base64 = await generateNarration(apiKey, chunks[chunkIdx], state.language, state.speaker, sentiment);
       const buffer = await decodeAudio(base64, activeCtx);
       setIsVoiceLoading(false);
 
@@ -206,7 +232,7 @@ const App: React.FC = () => {
       setIsVoiceLoading(false);
       if (isAutoMode && isNarrationActiveRef.current) triggerCountdown();
     }
-  }, [state.isBroadcasting, state.language, state.speaker, isAutoMode, audioCtx]);
+  }, [state.isBroadcasting, state.language, state.speaker, isAutoMode, audioCtx, apiKey]);
 
   const prepareStoryChunks = useCallback(async (index: number, newsList: NewsItem[]) => {
     const item = newsList[index];
@@ -222,8 +248,8 @@ const App: React.FC = () => {
     currentChunksRef.current = paragraphs.length > 0 ? paragraphs : [item.cyberStory];
 
     item.imagePrompts.forEach(async (p, idx) => {
-      if (idx < 1) {
-        const url = await generateStoryImage(p);
+      if (idx < 1 && apiKey) {
+        const url = await generateStoryImage(apiKey, p);
         setStoryImages(prev => {
           const next = [...prev];
           next[idx] = url;
@@ -237,7 +263,7 @@ const App: React.FC = () => {
     if (isNarrationActiveRef.current && audioCtx) {
       setTimeout(() => playChunk(0, currentChunksRef.current, item.sentiment, audioCtx), 300);
     }
-  }, [playChunk, audioCtx]);
+  }, [playChunk, audioCtx, apiKey]);
 
   const handleNext = useCallback(() => {
     if (countdownIntervalRef.current) {
@@ -273,10 +299,10 @@ const App: React.FC = () => {
   }, [handleNext]);
 
   const startBroadcast = async () => {
-    if (state.isFetching || !state.location) return;
+    if (state.isFetching || !state.location || !apiKey) return;
     try {
       setState(p => ({ ...p, isFetching: true, error: null }));
-      const { data, sources } = await fetchCyberpunkNews(state.location!.lat, state.location!.lng, state.language, state.topic, state.speaker);
+      const { data, sources } = await fetchCyberpunkNews(apiKey, state.location!.lat, state.location!.lng, state.language, state.topic, state.speaker);
       
       if (!data || data.length === 0) throw new Error("Weak signal: No reports found in this sector.");
       
@@ -350,6 +376,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen cyber-grid flex flex-col items-center p-4 lg:p-8" role="application">
+      {!apiKey && <ApiKeyModal onSave={handleSaveApiKey} />}
+
       <ProceduralAudio 
         isPlaying={isMusicActive && state.isBroadcasting} 
         sentiment={currentSentiment} 
@@ -388,7 +416,14 @@ const App: React.FC = () => {
         <div className={`p-8 max-h-[70vh] overflow-y-auto animate-in fade-in duration-500 ${showArchives ? '' : 'hidden'}`}>
            <div className="flex justify-between items-center mb-8 border-b border-cyan-900/30 pb-4">
             <h2 className="text-2xl font-black orbitron flex items-center gap-3"><Terminal className="text-cyan-400" /> ENCRYPTED RECORDS</h2>
-            <button onClick={() => setShowArchives(false)} aria-label="Close"><X className="w-8 h-8 text-cyan-400" /></button>
+            <div className="flex gap-4">
+               {apiKey && (
+                <button onClick={handleClearApiKey} className="text-[10px] text-red-500 border border-red-900/50 px-3 py-1 rounded hover:bg-red-950/30 flex items-center gap-2">
+                   <Key className="w-3 h-3" /> DISCONNECT KEY
+                </button>
+               )}
+               <button onClick={() => setShowArchives(false)} aria-label="Close"><X className="w-8 h-8 text-cyan-400" /></button>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {savedStories.map((s, i) => (
@@ -450,7 +485,7 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-          <button onClick={startBroadcast} className="w-full py-6 bg-cyan-600 hover:bg-cyan-400 text-black font-black uppercase tracking-[0.5em] text-xl transition-all shadow-[0_0_30px_rgba(0,255,204,0.3)] flex items-center justify-center gap-4">
+          <button onClick={startBroadcast} disabled={!apiKey} className={`w-full py-6 bg-cyan-600 hover:bg-cyan-400 text-black font-black uppercase tracking-[0.5em] text-xl transition-all shadow-[0_0_30px_rgba(0,255,204,0.3)] flex items-center justify-center gap-4 ${!apiKey ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <Zap className="animate-pulse" /> INITIATE NEURAL UPLINK
           </button>
         </div>
