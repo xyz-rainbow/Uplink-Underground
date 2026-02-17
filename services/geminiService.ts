@@ -40,7 +40,7 @@ export const fetchCyberpunkNews = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-lite',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }]
@@ -62,7 +62,10 @@ export const fetchCyberpunkNews = async (
       data: JSON.parse(cleanJson),
       sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
     };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.status === 429 || error?.code === 429 || error?.message?.includes('429')) {
+      throw new Error("TRANSFERENCIA BLOQUEADA: El cortafuegos corporativo está limitando nuestro enlace. Espera un momento.");
+    }
     console.error("Error fetching news:", error);
     throw new Error("Massive interference detected. Satellite link could not be established.");
   }
