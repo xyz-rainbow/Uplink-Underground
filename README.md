@@ -53,13 +53,16 @@ The experience is sensory. The system features a dynamic audio engine that react
 
 2. **Configure Environment:**
    You can provide your Gemini API key in two ways:
-   - **Runtime (Recommended):** Just run the app, and you will be prompted to enter your key securely. It is stored in your local browser storage.
+   - **Runtime (Recommended):** Just run the app, and you will be prompted to enter your key securely. It is stored in your local browser storage and is not shared with any server other than Google's.
    - **Dev Mode:** Set `VITE_GEMINI_API_KEY` in `.env` (or `.env.local`) to your key. This will auto-fill the key for local development.
 
 3. **Start the transmission:**
    ```bash
    npm run dev
    ```
+
+4. **Establish Uplink:**
+   Open the application in your browser. If you didn't provide a key in `.env`, you will be prompted to enter your **Gemini API Key** to start the neural transmission.
 
 ---
 
