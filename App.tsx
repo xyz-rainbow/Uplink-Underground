@@ -32,7 +32,7 @@ const App: React.FC = () => {
   const [isAutoMode, setIsAutoMode] = useState(true);
   const [countdown, setCountdown] = useState(0);
   const [volume, setVolume] = useState(0.7);
-  const [storyImages, setStoryImages] = useState<(string | null)[]>([null, null, null]);
+  const [storyImages, setStoryImages] = useState<(string | null)[]>([null]);
   
   const [isMusicActive, setIsMusicActive] = useState(false);
   const [isNarrationActive, setIsNarrationActive] = useState(false);
@@ -203,14 +203,14 @@ const App: React.FC = () => {
     setCurrentNewsIndex(index);
     setCurrentChunkIndex(0);
     setIsWaitingForNext(false);
-    setStoryImages([null, null, null]);
+    setStoryImages([null]);
     isTransitioningRef.current = false;
 
     const paragraphs = item.cyberStory.split('\n\n').filter(p => p.trim().length > 0);
     currentChunksRef.current = paragraphs.length > 0 ? paragraphs : [item.cyberStory];
 
     item.imagePrompts.forEach(async (p, idx) => {
-      if (idx < 3) {
+      if (idx < 1) {
         const url = await generateStoryImage(p);
         setStoryImages(prev => {
           const next = [...prev];
@@ -490,19 +490,21 @@ const App: React.FC = () => {
                             </p>
                          </div>
                          
-                         <div className="my-8 ml-8">
-                          {storyImages[i] ? (
-                            <div className="relative overflow-hidden rounded-lg border border-white/10 shadow-2xl transition-all duration-1000">
-                              <img src={storyImages[i]!} alt={`Visual representation of fragment ${i+1}`} className="w-full h-auto object-cover max-h-[500px]" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
-                            </div>
-                          ) : (
-                            <div className="w-full h-64 bg-white/5 border border-dashed border-white/10 rounded-lg flex items-center justify-center gap-4 animate-pulse">
-                              <Cpu className="w-8 h-8 text-white/10 animate-spin" />
-                              <span className="text-[10px] uppercase tracking-widest text-white/20">Rendering visual from the ether...</span>
-                            </div>
-                          )}
-                         </div>
+                         {i === 0 && (
+                           <div className="my-8 ml-8">
+                            {storyImages[0] ? (
+                              <div className="relative overflow-hidden rounded-lg border border-white/10 shadow-2xl transition-all duration-1000">
+                                <img src={storyImages[0]!} alt={`Visual representation of fragment ${i+1}`} className="w-full h-auto object-cover max-h-[500px]" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                              </div>
+                            ) : (
+                              <div className="w-full h-64 bg-white/5 border border-dashed border-white/10 rounded-lg flex items-center justify-center gap-4 animate-pulse">
+                                <Cpu className="w-8 h-8 text-white/10 animate-spin" />
+                                <span className="text-[10px] uppercase tracking-widest text-white/20">Rendering visual from the ether...</span>
+                              </div>
+                            )}
+                           </div>
+                         )}
                       </div>
                     ))}
                     <div className="h-40 flex items-center justify-center opacity-20 italic font-mono text-sm">
