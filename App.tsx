@@ -41,6 +41,7 @@ const App: React.FC = () => {
   const [isMusicActive, setIsMusicActive] = useState(false);
   const [isNarrationActive, setIsNarrationActive] = useState(false);
   const [isVoiceLoading, setIsVoiceLoading] = useState(false);
+  const [visualSignalLost, setVisualSignalLost] = useState<boolean[]>([false]);
 
   const [apiKey, setApiKey] = useState<string | null>(null);
 
@@ -81,9 +82,13 @@ const App: React.FC = () => {
 
     const storedKey = localStorage.getItem('uplink_gemini_api_key');
     if (storedKey) {
+      console.log("Neural Link: Loading key from storage.");
       setApiKey(storedKey);
     } else if (import.meta.env.VITE_GEMINI_API_KEY) {
+      console.log("Neural Link: Loading key from environment.");
       setApiKey(import.meta.env.VITE_GEMINI_API_KEY);
+    } else {
+      console.warn("Neural Link: No API Key found in storage or environment.");
     }
   }, []);
 
@@ -244,6 +249,7 @@ const App: React.FC = () => {
     setCurrentChunkIndex(0);
     setIsWaitingForNext(false);
     setStoryImages([null]);
+    setVisualSignalLost([false]);
     isTransitioningRef.current = false;
 
     const paragraphs = item.cyberStory.split('\n\n').filter(p => p.trim().length > 0);
@@ -252,11 +258,19 @@ const App: React.FC = () => {
     item.imagePrompts.forEach(async (p, idx) => {
       if (idx < 1 && apiKey) {
         const url = await generateStoryImage(apiKey, p);
-        setStoryImages(prev => {
-          const next = [...prev];
-          next[idx] = url;
-          return next;
-        });
+        if (url) {
+          setStoryImages(prev => {
+            const next = [...prev];
+            next[idx] = url;
+            return next;
+          });
+        } else {
+          setVisualSignalLost(prev => {
+            const next = [...prev];
+            next[idx] = true;
+            return next;
+          });
+        }
       }
     });
 
@@ -554,6 +568,11 @@ const App: React.FC = () => {
                             <div className="relative overflow-hidden rounded-lg border border-white/10 shadow-2xl transition-all duration-1000">
                               <img src={storyImages[0]!} alt={`Visual representation of fragment ${i + 1}`} className="w-full h-auto object-cover max-h-[500px]" />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                            </div>
+                          ) : visualSignalLost[0] ? (
+                            <div className="w-full h-64 bg-red-950/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center gap-4">
+                              <Activity className="w-8 h-8 text-red-500 animate-pulse" />
+                              <span className="text-[10px] uppercase tracking-widest text-red-500/60 font-black">VISUAL SIGNAL INTERRUPTED - ENCRYPTION FAILURE</span>
                             </div>
                           ) : (
                             <div className="w-full h-64 bg-white/5 border border-dashed border-white/10 rounded-lg flex items-center justify-center gap-4 animate-pulse">
