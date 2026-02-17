@@ -135,6 +135,9 @@ export const generateNarration = async (text: string, language: string, speaker:
 };
 
 export async function decodeAudio(base64: string, ctx: AudioContext): Promise<AudioBuffer> {
+  if (!base64) {
+    throw new Error("Decode Error: Empty audio data received.");
+  }
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
