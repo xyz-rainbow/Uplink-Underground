@@ -190,8 +190,8 @@ const App: React.FC = () => {
 
       source.start();
       audioSourceRef.current = source;
-    } catch (e) {
-      console.error("Playback error:", e);
+    } catch (e: any) {
+      console.error("Playback error:", e?.message || e);
       setIsVoiceLoading(false);
       if (isAutoMode && isNarrationActiveRef.current) triggerCountdown();
     }
@@ -309,8 +309,8 @@ const App: React.FC = () => {
         await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`);
         alert('Link copied to cortical clipboard.');
       }
-    } catch (err) {
-      console.error('Share error:', err);
+    } catch (err: any) {
+      console.error('Share error:', err?.message || err);
     }
   };
 

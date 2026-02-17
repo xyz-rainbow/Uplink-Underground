@@ -66,7 +66,7 @@ export const fetchCyberpunkNews = async (
     if (error?.status === 429 || error?.code === 429 || error?.message?.includes('429')) {
       throw new Error("TRANSFERENCIA BLOQUEADA: El cortafuegos corporativo está limitando nuestro enlace. Espera un momento.");
     }
-    console.error("Error fetching news:", error);
+    console.error("Error fetching news:", error?.message || error);
     throw new Error("Massive interference detected. Satellite link could not be established.");
   }
 };
@@ -95,8 +95,8 @@ export const generateStoryImage = async (prompt: string) => {
       }
     }
     return null;
-  } catch (error) {
-    console.error("Error generating image:", error);
+  } catch (error: any) {
+    console.error("Error generating image:", error?.message || error);
     return null;
   }
 };
