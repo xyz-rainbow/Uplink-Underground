@@ -40,38 +40,26 @@ export const fetchCyberpunkNews = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-2.0-flash',
       contents: prompt,
       config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              originalHeadline: { type: Type.STRING },
-              cyberHeadline: { type: Type.STRING },
-              cyberStory: { type: Type.STRING },
-              imagePrompts: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING }
-              },
-              sentiment: { type: Type.STRING },
-              source: { type: Type.STRING },
-              timestamp: { type: Type.STRING },
-            },
-            required: ["originalHeadline", "cyberHeadline", "cyberStory", "imagePrompts", "sentiment", "source", "timestamp"]
-          }
-        }
+        tools: [{ googleSearch: {} }]
       }
     });
 
-    const text = response.text;
+    let text = response.text;
     if (!text) throw new Error("Uplink down: No signal received.");
 
+    // Extract JSON array from text response (handles potential markdown formatting)
+    const jsonStart = text.indexOf('[');
+    const jsonEnd = text.lastIndexOf(']');
+    if (jsonStart === -1 || jsonEnd === -1) {
+      throw new Error("SATELLITE INTERFERENCE: Decryption failed. Neural data corrupted.");
+    }
+    const cleanJson = text.substring(jsonStart, jsonEnd + 1);
+
     return {
-      data: JSON.parse(text),
+      data: JSON.parse(cleanJson),
       sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
     };
   } catch (error) {

@@ -23,5 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 .available_models.json
-.list-models.json
 *.env
