@@ -5,12 +5,15 @@ import { fetchCyberpunkNews, generateNarration, decodeAudio, generateStoryImage 
 import { NewsItem, BroadcastState, SPEAKER_PROFILES, SpeakerProfile, Sentiment } from './types';
 import MusicVisualizer from './components/MusicVisualizer';
 import ProceduralAudio from './components/ProceduralAudio';
-import { MapPin, Radio, Zap, AlertTriangle, RefreshCw, ChevronRight, ExternalLink, Cpu, UserCheck, Bookmark, Trash2, Archive, X, Navigation, Infinity, Share2, Download, StopCircle, Volume2, VolumeX, Terminal, Image as ImageIcon, Activity, Play, Music, Mic, ScrollText, Loader2 } from 'lucide-react';
+import { MapPin, Radio, Zap, AlertTriangle, RefreshCw, ChevronRight, ExternalLink, Cpu, UserCheck, Bookmark, Trash2, Archive, X, Navigation, Infinity, Share2, Download, StopCircle, Volume2, VolumeX, Terminal, Image as ImageIcon, Activity, Play, Music, Mic, ScrollText, Loader2, Key } from 'lucide-react';
 import L from 'leaflet';
 
 const TOPICS = ['Technology', 'Crime', 'Politics', 'Economy', 'Corporate', 'General'];
 
 const App: React.FC = () => {
+  const [apiKey, setApiKey] = useState(localStorage.getItem('GEMINI_API_KEY') || '');
+  const [showKeyInput, setShowKeyInput] = useState(!localStorage.getItem('GEMINI_API_KEY'));
+
   const [state, setState] = useState<BroadcastState>({
     isBroadcasting: false,
     isFetching: false,
@@ -140,6 +143,13 @@ const App: React.FC = () => {
     }
   }, [state.isBroadcasting, showArchives]);
 
+  const handleSaveKey = (key: string) => {
+    if (!key.trim()) return;
+    localStorage.setItem('GEMINI_API_KEY', key);
+    setApiKey(key);
+    setShowKeyInput(false);
+  };
+
   const initAudio = async () => {
     let currentCtx = audioCtx;
     if (!currentCtx) {
@@ -175,7 +185,7 @@ const App: React.FC = () => {
     setIsVoiceLoading(true);
     
     try {
-      const base64 = await generateNarration(chunks[chunkIdx], state.language, state.speaker, sentiment);
+      const base64 = await generateNarration(apiKey, chunks[chunkIdx], state.language, state.speaker, sentiment);
       const buffer = await decodeAudio(base64, activeCtx);
       setIsVoiceLoading(false);
 
@@ -206,7 +216,7 @@ const App: React.FC = () => {
       setIsVoiceLoading(false);
       if (isAutoMode && isNarrationActiveRef.current) triggerCountdown();
     }
-  }, [state.isBroadcasting, state.language, state.speaker, isAutoMode, audioCtx]);
+  }, [state.isBroadcasting, state.language, state.speaker, isAutoMode, audioCtx, apiKey]);
 
   const prepareStoryChunks = useCallback(async (index: number, newsList: NewsItem[]) => {
     const item = newsList[index];
@@ -223,7 +233,7 @@ const App: React.FC = () => {
 
     item.imagePrompts.forEach(async (p, idx) => {
       if (idx < 1) {
-        const url = await generateStoryImage(p);
+        const url = await generateStoryImage(apiKey, p);
         setStoryImages(prev => {
           const next = [...prev];
           next[idx] = url;
@@ -237,7 +247,7 @@ const App: React.FC = () => {
     if (isNarrationActiveRef.current && audioCtx) {
       setTimeout(() => playChunk(0, currentChunksRef.current, item.sentiment, audioCtx), 300);
     }
-  }, [playChunk, audioCtx]);
+  }, [playChunk, audioCtx, apiKey]);
 
   const handleNext = useCallback(() => {
     if (countdownIntervalRef.current) {
@@ -276,7 +286,7 @@ const App: React.FC = () => {
     if (state.isFetching || !state.location) return;
     try {
       setState(p => ({ ...p, isFetching: true, error: null }));
-      const { data, sources } = await fetchCyberpunkNews(state.location!.lat, state.location!.lng, state.language, state.topic, state.speaker);
+      const { data, sources } = await fetchCyberpunkNews(apiKey, state.location!.lat, state.location!.lng, state.language, state.topic, state.speaker);
       
       if (!data || data.length === 0) throw new Error("Weak signal: No reports found in this sector.");
       
@@ -350,6 +360,36 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen cyber-grid flex flex-col items-center p-4 lg:p-8" role="application">
+
+      {showKeyInput && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-500">
+          <div className="max-w-md w-full border border-cyan-500/30 p-8 rounded-xl bg-black shadow-[0_0_50px_rgba(8,145,178,0.2)]">
+            <h2 className="text-2xl font-black orbitron text-cyan-400 mb-6 text-center glitch" data-text="AUTHENTICATION REQUIRED">AUTHENTICATION REQUIRED</h2>
+            <p className="text-xs font-mono text-cyan-600 mb-6 text-center">
+              ENTER YOUR GEMINI API KEY TO ESTABLISH NEURAL LINK.
+              <br/>THE KEY IS STORED LOCALLY IN YOUR BROWSER.
+            </p>
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveKey((e.currentTarget.elements.namedItem('apiKey') as HTMLInputElement).value); }} className="space-y-4">
+              <input
+                name="apiKey"
+                type="password"
+                placeholder="AIzaSy..."
+                className="w-full bg-cyan-950/20 border border-cyan-900 text-cyan-400 p-3 rounded text-sm font-mono focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(8,145,178,0.3)] placeholder-cyan-900"
+                autoFocus
+              />
+              <button type="submit" className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-black font-black uppercase tracking-widest transition-all">
+                CONNECT
+              </button>
+            </form>
+            <div className="mt-6 text-center">
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-[10px] text-cyan-700 hover:text-cyan-400 underline decoration-dotted">
+                    GET API KEY FROM GOOGLE AI STUDIO
+                </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ProceduralAudio 
         isPlaying={isMusicActive && state.isBroadcasting} 
         sentiment={currentSentiment} 
@@ -376,6 +416,9 @@ const App: React.FC = () => {
           </div>
           <button onClick={() => setShowArchives(!showArchives)} className="flex items-center gap-2 hover:text-white transition-colors">
             <Archive className="w-4 h-4" /> {showArchives ? 'EXIT' : 'ARCHIVES'}
+          </button>
+          <button onClick={() => { localStorage.removeItem('GEMINI_API_KEY'); setApiKey(''); setShowKeyInput(true); }} className="flex items-center gap-2 text-cyan-700 hover:text-red-500 transition-colors" title="Reset API Key">
+            <Key className="w-3 h-3" />
           </button>
           <span className="flex items-center gap-2 text-red-500">
             <MapPin className="w-3 h-3" /> {state.location?.lat.toFixed(2)}, {state.location?.lng.toFixed(2)}

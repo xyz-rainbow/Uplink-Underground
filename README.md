@@ -51,13 +51,13 @@ The experience is sensory. The system features a dynamic audio engine that react
    npm install
    ```
 
-2. **Configure Environment:**
-   Set the `GEMINI_API_KEY` in `.env` (or `.env.local`) to your Gemini API key.
-
-3. **Start the transmission:**
+2. **Start the transmission:**
    ```bash
    npm run dev
    ```
+
+3. **Establish Uplink:**
+   Open the application in your browser. You will be prompted to enter your **Gemini API Key**. The key is stored locally in your browser and is not shared with any server other than Google's API.
 
 ---
 

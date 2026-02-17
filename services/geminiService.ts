@@ -2,20 +2,17 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { SpeakerProfile, Sentiment } from "../types";
 
-const apiKey = process.env.API_KEY;
-if (!apiKey) {
-  throw new Error("SATELLITE LINK ERROR: API_KEY not detected in neural buffer. Ensure GEMINI_API_KEY is configured in your .env file.");
-}
-
-const ai = new GoogleGenAI({ apiKey });
+const getAi = (apiKey: string) => new GoogleGenAI({ apiKey });
 
 export const fetchCyberpunkNews = async (
+  apiKey: string,
   lat: number,
   lng: number,
   language: string,
   topic: string,
   speaker: SpeakerProfile
 ) => {
+  const ai = getAi(apiKey);
   const prompt = `Act as the clandestine news terminal "UPLINK UNDERGROUND". 
   Your mission is to intercept current real news about "${topic}" near the coordinates (${lat}, ${lng}) and retransmit them in a dystopian way for the year 2077 in ${language}.
   
@@ -71,7 +68,8 @@ export const fetchCyberpunkNews = async (
   }
 };
 
-export const generateStoryImage = async (prompt: string) => {
+export const generateStoryImage = async (apiKey: string, prompt: string) => {
+  const ai = getAi(apiKey);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -101,7 +99,8 @@ export const generateStoryImage = async (prompt: string) => {
   }
 };
 
-export const generateNarration = async (text: string, language: string, speaker: SpeakerProfile, sentiment: Sentiment) => {
+export const generateNarration = async (apiKey: string, text: string, language: string, speaker: SpeakerProfile, sentiment: Sentiment) => {
+  const ai = getAi(apiKey);
   const emotionMap: Record<Sentiment, string> = {
     AGGRESSIVE: "very aggressive, shouting with urgency, voice distorted by rage",
     MELANCHOLY: "depressed, shaky voice, long and sad pauses",
