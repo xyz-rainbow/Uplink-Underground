@@ -2,13 +2,18 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { SpeakerProfile, Sentiment } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  throw new Error("SATELLITE LINK ERROR: API_KEY not detected in neural buffer. Ensure GEMINI_API_KEY is configured in your .env file.");
+}
+
+const ai = new GoogleGenAI({ apiKey });
 
 export const fetchCyberpunkNews = async (
-  lat: number, 
-  lng: number, 
-  language: string, 
-  topic: string, 
+  lat: number,
+  lng: number,
+  language: string,
+  topic: string,
   speaker: SpeakerProfile
 ) => {
   const prompt = `Act as the clandestine news terminal "UPLINK UNDERGROUND". 
@@ -35,7 +40,7 @@ export const fetchCyberpunkNews = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash-lite',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -48,7 +53,7 @@ export const fetchCyberpunkNews = async (
               originalHeadline: { type: Type.STRING },
               cyberHeadline: { type: Type.STRING },
               cyberStory: { type: Type.STRING },
-              imagePrompts: { 
+              imagePrompts: {
                 type: Type.ARRAY,
                 items: { type: Type.STRING }
               },
@@ -64,7 +69,7 @@ export const fetchCyberpunkNews = async (
 
     const text = response.text;
     if (!text) throw new Error("Uplink down: No signal received.");
-    
+
     return {
       data: JSON.parse(text),
       sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
@@ -77,8 +82,7 @@ export const fetchCyberpunkNews = async (
 
 export const generateStoryImage = async (prompt: string) => {
   try {
-    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const response = await localAi.models.generateContent({
+    const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [
@@ -117,12 +121,12 @@ export const generateNarration = async (text: string, language: string, speaker:
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
-    contents: [{ 
-      parts: [{ 
+    contents: [{
+      parts: [{
         text: `You are ${speaker.name} from the Uplink Underground terminal. Read the following text with an emotion: ${emotionMap[sentiment]}. 
                Language: ${language}. 
-               Text: ${text}` 
-      }] 
+               Text: ${text}`
+      }]
     }],
     config: {
       responseModalities: [Modality.AUDIO],
@@ -144,14 +148,14 @@ export async function decodeAudio(base64: string, ctx: AudioContext): Promise<Au
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
-  
+
   const sampleCount = Math.floor(len / 2);
   const dataView = new DataView(bytes.buffer);
   const numChannels = 1;
   const sampleRate = 24000;
   const buffer = ctx.createBuffer(numChannels, sampleCount, sampleRate);
   const channelData = buffer.getChannelData(0);
-  
+
   for (let i = 0; i < sampleCount; i++) {
     channelData[i] = dataView.getInt16(i * 2, true) / 32768.0;
   }
