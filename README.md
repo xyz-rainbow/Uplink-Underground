@@ -1,44 +1,59 @@
-# Run Uplink-Underground
-![Uploadi<svg width="800" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
-  <!-- Fondo con Grid Cyberpunk -->
-  <rect width="800" height="300" fill="#0a0a0f" />
-  <defs>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1f1f2e" stroke-width="1"/>
-    </pattern>
-    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#ff0055;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#00f2ff;stop-opacity:1" />
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <rect width="800" height="300" fill="url(#grid)" />
-  
-  <!-- Círculo Central (Mirror) -->
-  <circle cx="400" cy="150" r="80" fill="none" stroke="url(#neonGrad)" stroke-width="2" filter="url(#glow)" />
-  <circle cx="400" cy="150" r="60" fill="none" stroke="#00f2ff" stroke-width="1" stroke-dasharray="10,5" />
-  
-  <!-- Líneas de Señal (Uplink) -->
-  <path d="M 100 150 L 320 150 M 480 150 L 700 150" stroke="url(#neonGrad)" stroke-width="2" stroke-dasharray="5,5" />
-  
-  <!-- Texto -->
-  <text x="400" y="260" font-family="monospace" font-size="24" fill="#00f2ff" text-anchor="middle" filter="url(#glow)" style="letter-spacing: 5px;">SPECULATIVE MIRROR</text>
-  <text x="400" y="280" font-family="monospace" font-size="10" fill="#ff0055" text-anchor="middle" style="letter-spacing: 2px;">UPLINK UNDERGROUND NEWS ENGINE</text>
-</svg>ng banner-uplink.svg…]()
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+│  1 # 📡 Uplink Underground: Speculative Mirror                                                                             │
+│  2 > "Turning the world's noise into the city's propaganda."                                                               │
+│  3                                                                                                                         │
+│  4 Speculative Mirror as a "Dystopian Translation" News engine that ingests real-world OSINT data and transmutes it into   |
+│    immersive chronicles of a cyberpunk future. It is not just a news aggregator; it is a lens that refracts reality        │
+│    through neon, crisis, and chrome.                                                                                       │
+│  5                                                                                                                         │
+│  6 ---                                                                                                                     │
+│  7                                                                                                                         │
+│  8 ## The "Speculative Mirror" Logic                                                                                       │
+│  9                                                                                                                         │
+│ 10 At its core, the application utilizes the Dystopian Translator engine to process raw information into atmospheric       │
+│    storytelling:                                                                                                           │
+│ 11                                                                                                                         │
+│ 12 1. Data Ingestion (OSINT)                                                                                               │
+│ 13 Using a mapping interface and location-based coordinates, the system scrapes real-world news from Google Search and     │
+│    local feeds. Reality is our raw material.                                                                               │
+│ 14                                                                                                                         │
+│ 15 2. Narrative Synthesis                                                                                                  │
+│ 16 Leveraging LLM logic, the engine maps economic or social data into a "High-Tech, Low-Life" context.                     │
+│ 17 * Example: A "boring" interest rate hike is reframed as an "Iron Vault Credit Tax" imposed on the city's neon           │
+│    districts.                                                                                                              │
+│ 18                                                                                                                         │
+│ 19 3. Persona-Driven Interpretation                                                                                        │
+│ 20 Users select different Speaker Profiles that dictate the bias and tone of the report:                                   │
+│ 21 * X-7 "REBEL" AI: Anarchist, aggressive, and anti-corporate tone.                                                       │
+│ 22 * ARASAKA-VOX 900: Clean, cold, and authoritarian corporate propaganda.                                                 │
+│ 23                                                                                                                         │
+│ 24 ---                                                                                                                     │
+│ 25                                                                                                                         │
+│ 26 ## Artistic & Technical Layer                                                                                           │
+│ 27                                                                                                                         │
+│ 28 ### Procedural Audio & Sentiment Sync                                                                                   │
+│ 29 The experience is sensory. The system features a dynamic audio engine that reacts to the news data:                     │
+│ 30 - Real-Time Synthesis: Generates synthwave or industrial tracks on the fly.                                             │
+│ 31 - Dynamic Tuning: Track parameters—such as tempo, filter resonance, and distortion—are tuned based on the Sentiment     │
+│    Analysis (Aggressive, Melancholy, Corporate, etc.) of the current news stream.                                          │
+│ 32                                                                                                                         │
+│ 33 ---                                                                                                                     │
+│ 34                                                                                                                         │
+│ 35 ## Technical Stack                                                                                                      │
+│ 36                                                                                                                         │
+│ 37 - Backend: Python / Node.js (OSINT processing & LLM orchestration).                                                     │
+│ 38 - Narrative: GPT-4o / Claude 3.5 (Semantic Mapping).                                                                    │
+│ 39 - Frontend: React / Next.js (CRT Terminal interface).                                                                   │
+│ 40 - Audio: Web Audio API / Tone.js (Procedural synthesis).                                                                │
+│ 41                                                                                                                         │
+│ 42 ---                                                                                                                     │
+│ 43                                                                                                                         │
+│ 44 ## Quick Start                                                                                                          │
+│ 45                                                                                                                         │
+│ 46 1. Clone the repository: git clone https://github.com/xyz-rainbow/Uplink-Underground-News-Engine.git                    │
+│ 47 2. Install dependencies: npm install && pip install -r requirements.txt                                                 │
+│ 48 3. Set up API keys (LLM & Search) in .env                                                                               │
+│ 49 4. Start the transmission: npm run start:uplink                                                                         │
+│ 50                                                                                                                         │
+│ 51 ---                                                                                                                     │
+│ 52                                                                                                                         │
+│ 53 *Developed for those who prefer their truth wrapped in neon.*
