@@ -10,6 +10,31 @@ interface ProceduralAudioProps {
   volume?: number;
 }
 
+interface AudioConfigItem {
+  baseFreq: number;
+  tempo: number;
+  q: number;
+  distortion: number;
+  wave: OscillatorType;
+  noise: number;
+}
+
+const SCALES: Record<Sentiment, number[]> = {
+  AGGRESSIVE: [0, 1, 3, 4, 6, 7, 10], // Locrio / Frigio agresivo
+  MELANCHOLY: [0, 2, 3, 5, 7, 8, 11], // Menor Armónica
+  CORPORATE: [0, 2, 4, 7, 9],        // Pentatónica mayor limpia
+  CHAOTIC: [0, 1, 6, 7, 8, 11],      // Escala simétrica / Disminuida
+  NEUTRAL: [0, 2, 3, 5, 7, 9, 10],   // Dórico
+};
+
+const AUDIO_CONFIG: Record<Sentiment, AudioConfigItem> = {
+  AGGRESSIVE: { baseFreq: 40, tempo: 140, q: 15, distortion: 0.8, wave: 'sawtooth', noise: 0.4 },
+  MELANCHOLY: { baseFreq: 30, tempo: 65, q: 2, distortion: 0.1, wave: 'sine', noise: 0.05 },
+  CORPORATE: { baseFreq: 55, tempo: 120, q: 5, distortion: 0.05, wave: 'square', noise: 0.01 },
+  CHAOTIC: { baseFreq: 45, tempo: 160, q: 25, distortion: 0.9, wave: 'triangle', noise: 0.8 },
+  NEUTRAL: { baseFreq: 35, tempo: 110, q: 8, distortion: 0.2, wave: 'sawtooth', noise: 0.1 },
+};
+
 const ProceduralAudio: React.FC<ProceduralAudioProps> = ({ sentiment, isPlaying, sharedContext, captureNode, volume = 0.7 }) => {
   const masterGainRef = useRef<GainNode | null>(null);
   const filterRef = useRef<BiquadFilterNode | null>(null);
@@ -18,21 +43,6 @@ const ProceduralAudio: React.FC<ProceduralAudioProps> = ({ sentiment, isPlaying,
   const intervalIdRef = useRef<number | null>(null);
   const droneOscsRef = useRef<OscillatorNode[]>([]);
 
-  const SCALES = {
-    AGGRESSIVE: [0, 1, 3, 4, 6, 7, 10], // Locrio / Frigio agresivo
-    MELANCHOLY: [0, 2, 3, 5, 7, 8, 11], // Menor Armónica
-    CORPORATE: [0, 2, 4, 7, 9],        // Pentatónica mayor limpia
-    CHAOTIC: [0, 1, 6, 7, 8, 11],      // Escala simétrica / Disminuida
-    NEUTRAL: [0, 2, 3, 5, 7, 9, 10],   // Dórico
-  };
-
-  const AUDIO_CONFIG = {
-    AGGRESSIVE: { baseFreq: 40, tempo: 140, q: 15, distortion: 0.8, wave: 'sawtooth' as OscillatorType, noise: 0.4 },
-    MELANCHOLY: { baseFreq: 30, tempo: 65, q: 2, distortion: 0.1, wave: 'sine' as OscillatorType, noise: 0.05 },
-    CORPORATE: { baseFreq: 55, tempo: 120, q: 5, distortion: 0.05, wave: 'square' as OscillatorType, noise: 0.01 },
-    CHAOTIC: { baseFreq: 45, tempo: 160, q: 25, distortion: 0.9, wave: 'triangle' as OscillatorType, noise: 0.8 },
-    NEUTRAL: { baseFreq: 35, tempo: 110, q: 8, distortion: 0.2, wave: 'sawtooth' as OscillatorType, noise: 0.1 },
-  };
 
   const initAudioEngine = (ctx: AudioContext) => {
     if (masterGainRef.current) return;
