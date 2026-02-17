@@ -2,12 +2,18 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { SpeakerProfile, Sentiment } from "../types";
 
-const apiKey = process.env.API_KEY;
-if (!apiKey) {
-  throw new Error("SATELLITE LINK ERROR: API_KEY not detected in neural buffer. Ensure GEMINI_API_KEY is configured in your .env file.");
-}
+let aiInstance: GoogleGenAI | null = null;
 
-const ai = new GoogleGenAI({ apiKey });
+const getAi = () => {
+  if (!aiInstance) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("SATELLITE LINK ERROR: API_KEY not detected in neural buffer. Ensure GEMINI_API_KEY is configured in your .env file.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 export const fetchCyberpunkNews = async (
   lat: number,
@@ -16,6 +22,7 @@ export const fetchCyberpunkNews = async (
   topic: string,
   speaker: SpeakerProfile
 ) => {
+  const ai = getAi();
   const prompt = `Act as the clandestine news terminal "UPLINK UNDERGROUND". 
   Your mission is to intercept current real news about "${topic}" near the coordinates (${lat}, ${lng}) and retransmit them in a dystopian way for the year 2077 in ${language}.
   
@@ -73,6 +80,7 @@ export const fetchCyberpunkNews = async (
 
 export const generateStoryImage = async (prompt: string) => {
   try {
+    const ai = getAi();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
@@ -110,6 +118,7 @@ export const generateNarration = async (text: string, language: string, speaker:
     NEUTRAL: "dramatic breaking news journalism, serious and deep voice"
   };
 
+  const ai = getAi();
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
     contents: [{
