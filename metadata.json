@@ -1,6 +1,6 @@
 {
   "name": "Uplink Underground",
-  "description": "Un centro de noticias futurista que utiliza tu ubicación real y titulares locales para transformarlos en una narrativa cyberpunk con narración por IA y música procedural.",
+  "description": "A futuristic news hub that uses your real location and local headlines to transform them into a cyberpunk narrative with AI narration and procedural music.",
   "requestFramePermissions": [
     "geolocation"
   ]

@@ -11,29 +11,27 @@ export const fetchCyberpunkNews = async (
   topic: string, 
   speaker: SpeakerProfile
 ) => {
-  const targetLanguage = language === 'Spanish' ? 'Castellano de España (peninsular)' : language;
-
-  const prompt = `Actúa como el terminal de noticias clandestino "UPLINK UNDERGROUND". 
-  Tu misión es interceptar noticias reales actuales sobre "${topic}" cerca de las coordenadas (${lat}, ${lng}) y retransmitirlas de forma distópica para el año 2077 en ${targetLanguage}.
+  const prompt = `Act as the clandestine news terminal "UPLINK UNDERGROUND". 
+  Your mission is to intercept current real news about "${topic}" near the coordinates (${lat}, ${lng}) and retransmit them in a dystopian way for the year 2077 in ${language}.
   
-  REGLAS DE LENGUAJE:
-  - Usa estrictamente español de España (vosotros, ordenador, móvil, vale).
+  LANGUAGE RULES:
+  - Respond strictly in ${language}.
   
-  ESTILO DEL EMISOR (${speaker.name}):
+  SPEAKER STYLE (${speaker.name}):
   ${speaker.personality}
 
-  REQUISITOS DEL CONTENIDO:
-  - Mantén la base real de la noticia (hechos, lugares y protagonistas reales).
-  - Formatea 'cyberStory' exactamente como 3 párrafos cortos separados por dobles saltos de línea (\\n\\n). 
-  - Cada párrafo debe ser una sola frase impactante que describa una fase de la noticia.
-  - Genera un JSON array de objetos con:
-    - originalHeadline: Titular real original.
-    - cyberHeadline: Titular estilizado, breve y potente.
-    - cyberStory: Reportaje (3 párrafos con \\n\\n).
-    - imagePrompts: ARRAY de exactamente 3 descripciones visuales detalladas (estilo cyberpunk digital art, alto contraste, neón).
-    - sentiment: [AGGRESSIVE, NEUTRAL, MELANCHOLY, CORPORATE, CHAOTIC]. Elige el que mejor encaje con la noticia real.
-    - source: Nombre de la fuente real.
-    - timestamp: Marca temporal tipo "CY-2077.MM.DD".`;
+  CONTENT REQUIREMENTS:
+  - Keep the real core of the news (real facts, places, and protagonists).
+  - Format 'cyberStory' exactly as 3 short paragraphs separated by double newlines (\\n\\n). 
+  - Each paragraph must be a single powerful sentence describing a phase of the news.
+  - Generate a JSON array of objects with:
+    - originalHeadline: Real original headline.
+    - cyberHeadline: Stylized, brief, and powerful headline.
+    - cyberStory: Report (3 paragraphs with \\n\\n).
+    - imagePrompts: ARRAY of exactly 3 detailed visual descriptions (cyberpunk digital art style, high contrast, neon).
+    - sentiment: [AGGRESSIVE, NEUTRAL, MELANCHOLY, CORPORATE, CHAOTIC]. Choose the one that best fits the real news.
+    - source: Name of the real source.
+    - timestamp: Time stamp like "CY-2077.MM.DD".`;
 
   try {
     const response = await ai.models.generateContent({
@@ -65,7 +63,7 @@ export const fetchCyberpunkNews = async (
     });
 
     const text = response.text;
-    if (!text) throw new Error("Uplink caído: No se recibió señal.");
+    if (!text) throw new Error("Uplink down: No signal received.");
     
     return {
       data: JSON.parse(text),
@@ -73,7 +71,7 @@ export const fetchCyberpunkNews = async (
     };
   } catch (error) {
     console.error("Error fetching news:", error);
-    throw new Error("Interferencia masiva detectada. No se pudo establecer el enlace con el satélite.");
+    throw new Error("Massive interference detected. Satellite link could not be established.");
   }
 };
 
@@ -110,22 +108,20 @@ export const generateStoryImage = async (prompt: string) => {
 
 export const generateNarration = async (text: string, language: string, speaker: SpeakerProfile, sentiment: Sentiment) => {
   const emotionMap: Record<Sentiment, string> = {
-    AGGRESSIVE: "muy agresivo, gritando con urgencia, voz distorsionada por la rabia",
-    MELANCHOLY: "deprimido, voz temblorosa, pausas largas y tristes",
-    CORPORATE: "optimismo aterrador y artificial, voz sintética perfecta, autoridad implacable",
-    CHAOTIC: "maníaco, risas erráticas entre frases, velocidad variable e inestable",
-    NEUTRAL: "periodismo dramático de última hora, voz seria y profunda"
+    AGGRESSIVE: "very aggressive, shouting with urgency, voice distorted by rage",
+    MELANCHOLY: "depressed, shaky voice, long and sad pauses",
+    CORPORATE: "terrifying and artificial optimism, perfect synthetic voice, implacable authority",
+    CHAOTIC: "manic, erratic laughter between sentences, variable and unstable speed",
+    NEUTRAL: "dramatic breaking news journalism, serious and deep voice"
   };
-
-  const targetLanguage = language === 'Spanish' ? 'Español de España' : language;
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
     contents: [{ 
       parts: [{ 
-        text: `Eres ${speaker.name} del terminal Uplink Underground. Lee el siguiente texto con una emoción ${emotionMap[sentiment]}. 
-               Idioma: ${targetLanguage}. Acento marcado de España. 
-               Texto: ${text}` 
+        text: `You are ${speaker.name} from the Uplink Underground terminal. Read the following text with an emotion: ${emotionMap[sentiment]}. 
+               Language: ${language}. 
+               Text: ${text}` 
       }] 
     }],
     config: {
@@ -139,7 +135,7 @@ export const generateNarration = async (text: string, language: string, speaker:
   });
 
   const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-  if (!base64Audio) throw new Error("Error en la síntesis: El emisor ha perdido la voz.");
+  if (!base64Audio) throw new Error("Synthesis error: The sender has lost their voice.");
   return base64Audio;
 };
 
