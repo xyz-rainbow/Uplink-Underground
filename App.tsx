@@ -103,28 +103,39 @@ const App: React.FC = () => {
   }, [state.isBroadcasting, currentNewsIndex]);
 
   useEffect(() => {
-    if (!state.isBroadcasting && !showArchives) {
-      const container = document.getElementById('map');
-      if (container && !mapRef.current) {
-        mapRef.current = L.map('map', { zoomControl: false }).setView([state.location?.lat || 40.4168, state.location?.lng || -3.7038], 3);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current);
-        if (state.location) {
-          markerRef.current = L.marker([state.location.lat, state.location.lng]).addTo(mapRef.current);
-        }
-        mapRef.current.on('click', (e: any) => {
-          const { lat, lng } = e.latlng;
-          setState(prev => ({ ...prev, location: { ...prev.location!, lat, lng } }));
-          if (markerRef.current) {
-            markerRef.current.setLatLng(e.latlng);
-          } else {
-            markerRef.current = L.marker(e.latlng).addTo(mapRef.current!);
-          }
-        });
+    const container = document.getElementById('map');
+    if (container && !mapRef.current) {
+      mapRef.current = L.map('map', { zoomControl: false }).setView([state.location?.lat || 40.4168, state.location?.lng || -3.7038], 3);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current);
+      if (state.location) {
+        markerRef.current = L.marker([state.location.lat, state.location.lng]).addTo(mapRef.current);
       }
-    } else if ((state.isBroadcasting || showArchives) && mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
-      markerRef.current = null;
+      mapRef.current.on('click', (e: any) => {
+        const { lat, lng } = e.latlng;
+        setState(prev => ({ ...prev, location: { ...prev.location!, lat, lng } }));
+        if (markerRef.current) {
+          markerRef.current.setLatLng(e.latlng);
+        } else {
+          markerRef.current = L.marker(e.latlng).addTo(mapRef.current!);
+        }
+      });
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!state.isBroadcasting && !showArchives && mapRef.current) {
+      // Small timeout to allow the DOM to update visibility before invalidating size
+      setTimeout(() => {
+        mapRef.current?.invalidateSize();
+      }, 100);
     }
   }, [state.isBroadcasting, showArchives]);
 
@@ -372,85 +383,88 @@ const App: React.FC = () => {
       </header>
 
       <main className={`w-full max-w-6xl bg-black/80 border rounded-xl overflow-hidden backdrop-blur-md transition-all duration-700 ${state.isBroadcasting ? themeColors : 'neon-border'}`}>
-        {showArchives ? (
-          <div className="p-8 max-h-[70vh] overflow-y-auto animate-in fade-in duration-500">
-             <div className="flex justify-between items-center mb-8 border-b border-cyan-900/30 pb-4">
-              <h2 className="text-2xl font-black orbitron flex items-center gap-3"><Terminal className="text-cyan-400" /> ENCRYPTED RECORDS</h2>
-              <button onClick={() => setShowArchives(false)} aria-label="Close"><X className="w-8 h-8 text-cyan-400" /></button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {savedStories.map((s, i) => (
-                <div key={i} className="p-5 border border-cyan-900/40 bg-cyan-950/5 rounded hover:bg-cyan-900/10 transition-colors group">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] opacity-40">{s.timestamp}</span>
-                    <button onClick={() => setSavedStories(prev => prev.filter(x => x.cyberHeadline !== s.cyberHeadline))} className="text-red-900 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                  <h3 className="font-bold text-white mb-2 uppercase">{s.cyberHeadline}</h3>
-                  <p className="text-xs italic opacity-70">"{s.cyberStory.slice(0, 100)}..."</p>
-                </div>
-              ))}
-            </div>
+        {/* Archives Section */}
+        <div className={`p-8 max-h-[70vh] overflow-y-auto animate-in fade-in duration-500 ${showArchives ? '' : 'hidden'}`}>
+           <div className="flex justify-between items-center mb-8 border-b border-cyan-900/30 pb-4">
+            <h2 className="text-2xl font-black orbitron flex items-center gap-3"><Terminal className="text-cyan-400" /> ENCRYPTED RECORDS</h2>
+            <button onClick={() => setShowArchives(false)} aria-label="Close"><X className="w-8 h-8 text-cyan-400" /></button>
           </div>
-        ) : !state.isBroadcasting && !state.isFetching ? (
-          <div className="p-8 lg:p-12 space-y-12 animate-in fade-in zoom-in duration-500">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-black uppercase tracking-widest text-cyan-600">01. Tracking Coordinates</label>
-                  <button onClick={() => { setIsLocating(true); navigator.geolocation.getCurrentPosition(p => { 
-                    const loc = { lat: p.coords.latitude, lng: p.coords.longitude };
-                    setState(s => ({ ...s, location: { ...s.location!, ...loc } }));
-                    if (mapRef.current) mapRef.current.setView([loc.lat, loc.lng], 10);
-                    setIsLocating(false);
-                  }, () => setIsLocating(false)); }} className="text-[10px] border border-cyan-800 px-3 py-1 hover:bg-cyan-900 transition-colors">
-                    {isLocating ? 'CALIBRATING...' : 'AUTO-GPS'}
-                  </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {savedStories.map((s, i) => (
+              <div key={i} className="p-5 border border-cyan-900/40 bg-cyan-950/5 rounded hover:bg-cyan-900/10 transition-colors group">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[10px] opacity-40">{s.timestamp}</span>
+                  <button onClick={() => setSavedStories(prev => prev.filter(x => x.cyberHeadline !== s.cyberHeadline))} className="text-red-900 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
                 </div>
-                <div id="map" className="rounded-lg border border-cyan-900/50 overflow-hidden shadow-inner cursor-crosshair"></div>
+                <h3 className="font-bold text-white mb-2 uppercase">{s.cyberHeadline}</h3>
+                <p className="text-xs italic opacity-70">"{s.cyberStory.slice(0, 100)}..."</p>
               </div>
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <label className="text-xs font-black uppercase tracking-widest text-cyan-600">02. Link Parameters</label>
-                  <div className="flex flex-wrap gap-2">
-                    {TOPICS.map(t => (
-                      <button key={t} onClick={() => setState(p => ({ ...p, topic: t }))} 
-                        className={`text-[11px] px-4 py-2 border transition-all font-bold ${state.topic === t ? 'bg-cyan-500 text-black border-cyan-400 shadow-[0_0_10px_rgba(0,255,204,0.3)]' : 'border-cyan-900 text-cyan-700 hover:border-cyan-400'}`}>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-4">
-                   <label className="text-xs font-black uppercase tracking-widest text-cyan-600">03. Identity Profile</label>
-                   <div className="grid grid-cols-1 gap-3">
-                    {SPEAKER_PROFILES.map(p => (
-                      <button key={p.id} onClick={() => setState(s => ({ ...s, speaker: p }))}
-                        className={`p-4 border text-left transition-all ${state.speaker.id === p.id ? 'bg-cyan-500/10 border-cyan-400' : 'border-cyan-900/40 opacity-50 hover:opacity-100'}`}>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-bold orbitron text-xs tracking-wider">{p.name}</span>
-                          {state.speaker.id === p.id && <UserCheck className="w-4 h-4 text-cyan-400" />}
-                        </div>
-                        <p className="text-[10px] opacity-60 leading-tight">{p.description}</p>
-                      </button>
-                    ))}
-                   </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Setup Section */}
+        <div className={`p-8 lg:p-12 space-y-12 animate-in fade-in zoom-in duration-500 ${!showArchives && !state.isBroadcasting && !state.isFetching ? '' : 'hidden'}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-black uppercase tracking-widest text-cyan-600">01. Tracking Coordinates</label>
+                <button onClick={() => { setIsLocating(true); navigator.geolocation.getCurrentPosition(p => {
+                  const loc = { lat: p.coords.latitude, lng: p.coords.longitude };
+                  setState(s => ({ ...s, location: { ...s.location!, ...loc } }));
+                  if (mapRef.current) mapRef.current.setView([loc.lat, loc.lng], 10);
+                  setIsLocating(false);
+                }, () => setIsLocating(false)); }} className="text-[10px] border border-cyan-800 px-3 py-1 hover:bg-cyan-900 transition-colors">
+                  {isLocating ? 'CALIBRATING...' : 'AUTO-GPS'}
+                </button>
+              </div>
+              <div id="map" className="rounded-lg border border-cyan-900/50 overflow-hidden shadow-inner cursor-crosshair"></div>
+            </div>
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-cyan-600">02. Link Parameters</label>
+                <div className="flex flex-wrap gap-2">
+                  {TOPICS.map(t => (
+                    <button key={t} onClick={() => setState(p => ({ ...p, topic: t }))}
+                      className={`text-[11px] px-4 py-2 border transition-all font-bold ${state.topic === t ? 'bg-cyan-500 text-black border-cyan-400 shadow-[0_0_10px_rgba(0,255,204,0.3)]' : 'border-cyan-900 text-cyan-700 hover:border-cyan-400'}`}>
+                      {t}
+                    </button>
+                  ))}
                 </div>
               </div>
+              <div className="space-y-4">
+                 <label className="text-xs font-black uppercase tracking-widest text-cyan-600">03. Identity Profile</label>
+                 <div className="grid grid-cols-1 gap-3">
+                  {SPEAKER_PROFILES.map(p => (
+                    <button key={p.id} onClick={() => setState(s => ({ ...s, speaker: p }))}
+                      className={`p-4 border text-left transition-all ${state.speaker.id === p.id ? 'bg-cyan-500/10 border-cyan-400' : 'border-cyan-900/40 opacity-50 hover:opacity-100'}`}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold orbitron text-xs tracking-wider">{p.name}</span>
+                        {state.speaker.id === p.id && <UserCheck className="w-4 h-4 text-cyan-400" />}
+                      </div>
+                      <p className="text-[10px] opacity-60 leading-tight">{p.description}</p>
+                    </button>
+                  ))}
+                 </div>
+              </div>
             </div>
-            <button onClick={startBroadcast} className="w-full py-6 bg-cyan-600 hover:bg-cyan-400 text-black font-black uppercase tracking-[0.5em] text-xl transition-all shadow-[0_0_30px_rgba(0,255,204,0.3)] flex items-center justify-center gap-4">
-              <Zap className="animate-pulse" /> INITIATE NEURAL UPLINK
-            </button>
           </div>
-        ) : state.isFetching ? (
-          <div className="p-32 flex flex-col items-center justify-center space-y-6">
-            <RefreshCw className="w-16 h-16 text-cyan-400 animate-spin" />
-            <div className="text-center">
-              <p className="text-xl font-black orbitron animate-pulse">EXTRACTING DATA FROM THE ETHER...</p>
-              <p className="text-[10px] opacity-40 font-mono italic mt-2">"Hacking local networks for the underground report"</p>
-            </div>
+          <button onClick={startBroadcast} className="w-full py-6 bg-cyan-600 hover:bg-cyan-400 text-black font-black uppercase tracking-[0.5em] text-xl transition-all shadow-[0_0_30px_rgba(0,255,204,0.3)] flex items-center justify-center gap-4">
+            <Zap className="animate-pulse" /> INITIATE NEURAL UPLINK
+          </button>
+        </div>
+
+        {/* Fetching Section */}
+        <div className={`p-32 flex flex-col items-center justify-center space-y-6 ${!showArchives && state.isFetching ? '' : 'hidden'}`}>
+          <RefreshCw className="w-16 h-16 text-cyan-400 animate-spin" />
+          <div className="text-center">
+            <p className="text-xl font-black orbitron animate-pulse">EXTRACTING DATA FROM THE ETHER...</p>
+            <p className="text-[10px] opacity-40 font-mono italic mt-2">"Hacking local networks for the underground report"</p>
           </div>
-        ) : (
-          <div className="flex flex-col">
+        </div>
+
+        {/* Broadcasting Section */}
+        <div className={`flex flex-col ${!showArchives && state.isBroadcasting ? '' : 'hidden'}`}>
             <div className="p-8 lg:p-14 relative overflow-hidden min-h-[600px] animate-in slide-in-from-bottom duration-700">
               <div className="flex justify-between items-start mb-8">
                 <div className={`px-4 py-1 border text-[10px] font-black uppercase tracking-widest ${themeColors} flex items-center gap-2`}>
@@ -461,16 +475,19 @@ const App: React.FC = () => {
                    <button onClick={() => setIsAutoMode(!isAutoMode)} className={`p-2 border transition-all ${isAutoMode ? 'bg-yellow-500 text-black' : 'border-cyan-900 text-cyan-800'}`} title="Auto Mode">
                     <Infinity className="w-5 h-5" />
                    </button>
-                   <button onClick={() => setSavedStories(prev => [...prev, state.news[currentNewsIndex]])} className="p-2 border border-cyan-900 text-cyan-500 hover:bg-cyan-900/20 transition-all"><Bookmark className="w-5 h-5" /></button>
+                   <button onClick={() => {
+                     const currentNews = state.news[currentNewsIndex];
+                     if (currentNews) setSavedStories(prev => [...prev, currentNews]);
+                   }} className="p-2 border border-cyan-900 text-cyan-500 hover:bg-cyan-900/20 transition-all" title="Bookmark Report"><Bookmark className="w-5 h-5" /></button>
                    <button onClick={stopEverything} className="p-2 border border-red-900 text-red-500 hover:bg-red-900/20 transition-all"><X className="w-5 h-5" /></button>
                 </div>
               </div>
 
               <div className="space-y-12 relative z-10 pb-32">
                 <div className="space-y-4">
-                  <span className="text-[10px] font-mono opacity-30 uppercase tracking-[0.3em] block">{state.news[currentNewsIndex].timestamp}</span>
-                  <h2 className="text-4xl lg:text-7xl font-black uppercase tracking-tighter leading-[0.9] glitch mb-12" style={{ color: primaryHex }} data-text={state.news[currentNewsIndex].cyberHeadline}>
-                    {state.news[currentNewsIndex].cyberHeadline}
+                  <span className="text-[10px] font-mono opacity-30 uppercase tracking-[0.3em] block">{state.news[currentNewsIndex]?.timestamp}</span>
+                  <h2 className="text-4xl lg:text-7xl font-black uppercase tracking-tighter leading-[0.9] glitch mb-12" style={{ color: primaryHex }} data-text={state.news[currentNewsIndex]?.cyberHeadline}>
+                    {state.news[currentNewsIndex]?.cyberHeadline}
                   </h2>
                 </div>
                 
@@ -535,7 +552,7 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="text-[10px] opacity-40 border-t border-white/10 pt-4 uppercase tracking-widest">Verification Sources</div>
-                    <div className="text-[11px] leading-tight opacity-60 italic">"{state.news[currentNewsIndex].originalHeadline}"</div>
+                    <div className="text-[11px] leading-tight opacity-60 italic">"{state.news[currentNewsIndex]?.originalHeadline}"</div>
                     <div className="space-y-3">
                       {state.sources.map((s, i) => s.web && (
                         <a key={i} href={s.web.uri} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-3 text-[10px] text-cyan-400 hover:text-white transition-colors bg-cyan-950/20 p-3 border border-cyan-400/10 rounded-md">
@@ -588,7 +605,6 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
       </main>
 
       {state.error && (
