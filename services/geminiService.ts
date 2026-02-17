@@ -7,6 +7,7 @@ if (!apiKey) {
   throw new Error("SATELLITE LINK ERROR: API_KEY not detected in neural buffer. Ensure GEMINI_API_KEY is configured in your .env file.");
 }
 
+// Initialize GoogleGenAI once and reuse the instance across requests to optimize performance
 const ai = new GoogleGenAI({ apiKey });
 
 export const fetchCyberpunkNews = async (
