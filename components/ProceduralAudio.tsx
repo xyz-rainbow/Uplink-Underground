@@ -17,6 +17,7 @@ const ProceduralAudio: React.FC<ProceduralAudioProps> = ({ sentiment, isPlaying,
   const lfoGainRef = useRef<GainNode | null>(null);
   const intervalIdRef = useRef<number | null>(null);
   const droneOscsRef = useRef<OscillatorNode[]>([]);
+  const noiseBufferRef = useRef<AudioBuffer | null>(null);
 
   const SCALES = {
     AGGRESSIVE: [0, 1, 3, 4, 6, 7, 10], // Locrio / Frigio agresivo
@@ -82,6 +83,14 @@ const ProceduralAudio: React.FC<ProceduralAudioProps> = ({ sentiment, isPlaying,
       createDrone(cfg.baseFreq * 1.5, 5),
       createDrone(cfg.baseFreq * 0.5, 0)
     ];
+
+    if (!noiseBufferRef.current) {
+      const bufferSize = ctx.sampleRate * 0.15;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      noiseBufferRef.current = buffer;
+    }
   };
 
   const playSynthFM = (ctx: AudioContext, time: number, freq: number, dur: number) => {
@@ -133,12 +142,10 @@ const ProceduralAudio: React.FC<ProceduralAudioProps> = ({ sentiment, isPlaying,
       osc.start(time);
       osc.stop(time + 0.4);
     } else {
+      if (!noiseBufferRef.current) return;
+
       const noise = ctx.createBufferSource();
-      const bufferSize = ctx.sampleRate * 0.15;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-      noise.buffer = buffer;
+      noise.buffer = noiseBufferRef.current;
       
       const f = ctx.createBiquadFilter();
       f.type = type === 'snare' ? 'lowpass' : 'highpass';
